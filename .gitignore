@@ -2,6 +2,7 @@ build/
 devel/
 lib/
 .idea/
+.vscode/
 cmake-build-debug/
 cmake-build-release/
 */.python-version
