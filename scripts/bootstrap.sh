@@ -13,6 +13,15 @@ set -x
 # (except in until or while loops, if-tests, list constructs)
 set -e
 
+# This function checks if we're inside a docker container. If we are, then we do not run commands with "sudo".
+run_sudo() {
+    if [ -z "${DOCKER_CONTAINER}" ] || [ "${DOCKER_CONTAINER}" = false ]; then
+        sudo $@
+    else
+        $@
+    fi
+}
+
 ### GLOBAL VARIABLES BEGIN ###
 
 # Import env variables
@@ -22,8 +31,12 @@ SCRIPT_DIR=$(dirname "$(readlink -fm "$0")")
 # Python version (must be >= 3.5)
 PYTHON_VERSION=3.7  
 
-# true if we are running in a container, false otherwise
-DOCKER_BOOTSTRAP=false    
+# If DOCKER_CONTAINER is not defined, then set it to false.
+# It should be true if we are running in a container, false otherwise
+if [ -z "${DOCKER_CONTAINER}" ]; then
+  DOCKER_CONTAINER=false
+fi
+  
 
 # dependencies versions
 EIGEN3_VERSION=3.3.7
@@ -34,26 +47,38 @@ SIOCLIENT_COMMIT=ff6ef08e45c594e33aa6bc19ebdd07954914efe0
 
 ### GLOBAL VARIABLES END ###
 
-# ":" is the Bash equivalent of the "pass" Python function.
-# Because we executed 'set -x', this is a way of printing to console.
-: "Updating repositories..." && \
-sudo apt-get update -y -qq
-# -y means say 'yes' to everything; '-qq' is quiet mode
-
-if [ "${DOCKER_BOOSTRAP}" = true ]; then
+if [ "${DOCKER_CONTAINER}" = true ]; then
+    # ":" is the Bash equivalent of the "pass" Python function.
+    # Because we executed 'set -x', this is a way of printing to console.
+    : "Updating repositories..." && \
+    apt-get update -y -qq && \
     apt-get upgrade -y -qq
+else
+    # If it's not a container, run with sudo
+    sudo apt-get update -y -qq
+    # -y means say 'yes' to everything; '-qq' is quiet mode
 fi
 
-
+echo "Installing Python..."
 # It is best to use double-quotes everytime you use a variable than to remember when double-quotes are actually necessary
-sudo apt-get install -y python"${PYTHON_VERSION}" python3-pip
+run_sudo apt-get install -y python"${PYTHON_VERSION}" python3-pip
 python"${PYTHON_VERSION}" -m pip install pip
 
+echo "Installing basic dependencies..."
+run_sudo apt-get install -y -qq \
+    build-essential \
+    pkg-config \
+    cmake \
+    git \
+    wget \
+    curl \
+    tar \
+    unzip && \
 
-if [ "${DOCKER_BOOSTRAP}" = true ]; then
+if [ "${DOCKER_CONTAINER}" = true ]; then
     # Set 'python' command to run the installed version
     # We use dot '.' instead of 'source', because this script is for 'sh' not 'bash'
-    echo "alias python=python${PYTHON_VERSION}" >> ${HOME}/.bashrc && . ${HOME}/.bashrc
+    echo "alias python=python${PYTHON_VERSION}" >> ${HOME}/.profile && . ${HOME}/.profile
 fi
 
 # The following dependencies come from OpenVSlam Dockerfile:
@@ -64,14 +89,14 @@ fi
 echo "Installing OpenVSlam dependencies' dependencies (C++ is fun, lol)..."
 
 echo "Installing G2O dependencies..."
-sudo apt-get install -y -qq \
+run_sudo apt-get install -y -qq \
     libgoogle-glog-dev \
     libatlas-base-dev \
     libsuitesparse-dev \
     libglew-dev
 
 echo "Installing OpenCV depenendencies..."
-sudo apt-get install -y -qq \
+run_sudo apt-get install -y -qq \
     libjpeg-dev \
     libpng++-dev \
     libtiff-dev \
@@ -84,13 +109,19 @@ sudo apt-get install -y -qq \
     libswscale-dev \
     libavresample-dev
 
+echo "Installing Protobuf dependencies..."
+run_sudo apt-get install -y -qq \
+    autogen \
+    autoconf \
+    libtool
+
 echo "Installing other dependencies..."
-sudo apt-get install -y -qq \
+run_sudo apt-get install -y -qq \
     libyaml-cpp-dev
 
-if [ "${DOCKER_BOOSTRAP}" = true ]; then
+if [ "${DOCKER_CONTAINER}" = true ]; then
     echo "Removing cache (Docker only)..."
-    sudo apt-get autoremove -y -qq
+    apt-get autoremove -y -qq
     rm -rf /var/lib/apt/lists/*
 fi
 
@@ -108,7 +139,7 @@ cmake \
     -DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" \
     ..
 make
-sudo make install
+run_sudo make install
 
 echo "Installing G2O..."
 
@@ -133,7 +164,7 @@ cmake \
     -DG2O_BUILD_LINKED_APPS=OFF \
     ..
 make 
-sudo make install
+run_sudo make install
 
 echo "Installing OpenCV"
 
@@ -164,7 +195,7 @@ cmake \
     -DWITH_OPENMP=ON \
     ..
 make
-sudo make install
+run_sudo make install
 
 echo "Installing DBoW2..."
 
@@ -179,7 +210,7 @@ cmake \
     -DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" \
     .. 
 make
-sudo make install
+run_sudo make install
 
 echo "Installing socket.io-client-cpp..."
 
@@ -198,7 +229,7 @@ cmake \
     -DBUILD_UNIT_TESTS=OFF \
     ..
 make
-sudo make install
+run_sudo make install
 
 echo "Installing Protobuf..."
 
@@ -212,14 +243,14 @@ cd protobuf-3.6.1
     --prefix=/usr/local \
     --enable-static=no
 make
-sudo make install
+run_sudo make install
 
-if [ "${DOCKER_BOOSTRAP}" = true ]; then
+if [ "${DOCKER_CONTAINER}" = true ]; then
     echo "Removing temporary files and cache (Docker only)..."
     cd /tmp
     rm -rf *
-    sudo apt-get purge -y -qq autogen autoconf libtool
-    sudo apt-get autoremove -y -qq
+    apt-get purge -y -qq autogen autoconf libtool
+    apt-get autoremove -y -qq
     rm -rf /var/lib/apt/lists/*
 fi
 

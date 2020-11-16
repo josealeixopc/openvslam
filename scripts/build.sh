@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -x
+
 # Import env variables
 SCRIPT_DIR=$(dirname "$(readlink -fm "$0")")
 . "${SCRIPT_DIR}/env.sh"
@@ -7,7 +9,7 @@ SCRIPT_DIR=$(dirname "$(readlink -fm "$0")")
 echo $CMAKE_INSTALL_PREFIX
 
 # If true, we are using Pangolin to view. Otherwise we are using SockerViewer.
-PANGOLIN_VIEWER=OFF
+PANGOLIN_VIEWER=ON
 
 if [ "${PANGOLIN_VIEWER}" = OFF ] ; then
     SOCKET_VIEWER=ON
@@ -27,5 +29,9 @@ cmake \
     -DUSE_STACK_TRACE_LOGGER=ON \
     -DBOW_FRAMEWORK=DBoW2 \
     -DBUILD_TESTS=OFF \
-    .. && \
-make
+    -DCMAKE_BUILD_TYPE=Debug \
+    ..
+
+# nproc returns the number of available processing units
+# the '-jX' flag tells make it can launch up to X concurrent processes during build
+make -j"$(nproc)"

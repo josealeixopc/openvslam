@@ -142,3 +142,6 @@ if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(test)
 endif()
+
+# add python bindings
+add_subdirectory(python)
