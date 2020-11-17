@@ -9,13 +9,14 @@ SCRIPT_DIR=$(dirname "$(readlink -fm "$0")")
 echo $CMAKE_INSTALL_PREFIX
 
 # If true, we are using Pangolin to view. Otherwise we are using SockerViewer.
-PANGOLIN_VIEWER=ON
+PANGOLIN_VIEWER=OFF
+SOCKET_VIEWER=OFF
 
-if [ "${PANGOLIN_VIEWER}" = OFF ] ; then
-    SOCKET_VIEWER=ON
-else
-    SOCKET_VIEWER=OFF
-fi
+# if [ "${PANGOLIN_VIEWER}" = ON ] ; then
+#     SOCKET_VIEWER=OFF
+# else
+#     SOCKET_VIEWER=SOCKET_VIEWER
+# fi
 
 ROOT_DIR="$(dirname "$(dirname "$(readlink -fm "$0")")")"
 

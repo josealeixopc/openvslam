@@ -81,6 +81,10 @@ public:
     Mat44_t track_RGBD_image(const cv::Mat& img, const cv::Mat& depthmap, const double timestamp, const cv::Mat& mask = cv::Mat{});
 
     //-----------------------------------------
+    // management for status
+    bool is_lost();
+
+    //-----------------------------------------
     // management for reset process
 
     //! Reset the databases

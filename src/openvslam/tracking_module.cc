@@ -137,6 +137,10 @@ Mat44_t tracking_module::track_RGBD_image(const cv::Mat& img, const cv::Mat& dep
     return curr_frm_.cam_pose_cw_;
 }
 
+bool tracking_module::is_lost() {
+    return tracking_state_ == tracker_state_t::Lost;
+}
+
 void tracking_module::reset() {
     spdlog::info("resetting system");
 

@@ -114,6 +114,9 @@ public:
     Mat44_t feed_RGBD_frame(const cv::Mat& rgb_img, const cv::Mat& depthmap, const double timestamp, const cv::Mat& mask = cv::Mat{});
 
     //-----------------------------------------
+    // management for state
+    bool tracker_is_lost();
+
     // management for pause
 
     //! Pause the tracking module

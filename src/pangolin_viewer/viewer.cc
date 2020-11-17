@@ -451,6 +451,7 @@ bool viewer::terminate_is_requested() {
 void viewer::terminate() {
     std::lock_guard<std::mutex> lock(mtx_terminate_);
     is_terminated_ = true;
+    pangolin::DestroyWindow(map_viewer_name_);
 }
 
 } // namespace pangolin_viewer

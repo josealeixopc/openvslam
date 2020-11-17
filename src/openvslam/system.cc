@@ -277,6 +277,10 @@ Mat44_t system::feed_RGBD_frame(const cv::Mat& rgb_img, const cv::Mat& depthmap,
     return cam_pose_cw;
 }
 
+bool system::tracker_is_lost() {
+    return tracker_->is_lost();
+}
+
 void system::pause_tracker() {
     tracker_->request_pause();
 }
