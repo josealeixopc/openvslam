@@ -38,7 +38,13 @@ class CMakeBuild(build_ext):
             extdir += os.path.sep
 
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
-                      '-DPYTHON_EXECUTABLE=' + sys.executable]
+                      '-DPYTHON_EXECUTABLE=' + sys.executable,
+                      '-DBUILD_WITH_MARCH_NATIVE=OFF',
+                      '-DUSE_PANGOLIN_VIEWER=OFF',
+                      '-DUSE_SOCKET_PUBLISHER=OFF',
+                      '-DUSE_STACK_TRACE_LOGGER=ON',
+                      '-DBOW_FRAMEWORK=DBoW2',
+                      '-DBUILD_TESTS=OFF']
 
         cfg = 'Debug' if self.debug else 'Release'
         build_args = ['--config', cfg]
@@ -67,7 +73,7 @@ setup(
     author_email='josealeixo.pc@gmail.com',
     description='A test project using pybind11 and CMake to create OpenVSlam bindings',
     long_description='',
-    ext_modules=[CMakeExtension('cmake_example')],
+    ext_modules=[CMakeExtension('cmake_example')],   # Must be the same name of the target of 'pybind11_add_module' in CMake
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
 )
