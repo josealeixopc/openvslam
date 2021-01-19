@@ -7,6 +7,7 @@ cmake-build-debug/
 cmake-build-release/
 */.python-version
 *.user
+*.whl
 
 # Prerequisites
 *.d

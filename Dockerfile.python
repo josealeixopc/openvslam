@@ -1,13 +1,7 @@
 # We choose Ubuntu 18.04 because it's the current development version
-FROM ubuntu:18.04 as build
+FROM python:3.6
 
 ENV DOCKER_CONTAINER=true
-
-# Copy scripts for bootstraping and give permissions to run
-COPY ./scripts/bootstrap.sh ./scripts/env.sh /tmp/
-WORKDIR /tmp
-RUN chmod +x *
-RUN ./bootstrap.sh
 
 WORKDIR /
 ENTRYPOINT ["/bin/bash"]

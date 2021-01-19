@@ -29,7 +29,7 @@ SCRIPT_DIR=$(dirname "$(readlink -fm "$0")")
 . "${SCRIPT_DIR}/env.sh"
 
 # Python version (must be >= 3.5)
-PYTHON_VERSION=3.7  
+PYTHON_VERSION=3.6
 
 # If DOCKER_CONTAINER is not defined, then set it to false.
 # It should be true if we are running in a container, false otherwise
@@ -41,20 +41,11 @@ fi
 if [ -z "${MANYLINUX_CONTAINER}" ]; then
   MANYLINUX_CONTAINER=false
 fi
-  
-
 
 ### GLOBAL VARIABLES END ###
 
-if [ "${MANYLINUX_CONTAINER}" = true]; then
-    # These are necessary for the manylinux_2014 image
-    yum install -y \
-        wget \
-        yaml-cpp-devel \
-        glog-devel \
-        python-devel \
-        suitesparse-devel
-else
+### Updating packages and installing dependencies
+
 if [ "${DOCKER_CONTAINER}" = true ]; then
     # ":" is the Bash equivalent of the "pass" Python function.
     # Because we executed 'set -x', this is a way of printing to console.
@@ -81,7 +72,7 @@ run_sudo apt-get install -y -qq \
     wget \
     curl \
     tar \
-    unzip && \
+    unzip
 
 if [ "${DOCKER_CONTAINER}" = true ]; then
     # Set 'python' command to run the installed version
@@ -133,134 +124,3 @@ if [ "${DOCKER_CONTAINER}" = true ]; then
     apt-get autoremove -y -qq
     rm -rf /var/lib/apt/lists/*
 fi
-
-echo "Installing Eigen3..."
-
-cd /tmp
-wget -q https://gitlab.com/libeigen/eigen/-/archive/"${EIGEN3_VERSION}"/eigen-"${EIGEN3_VERSION}".tar.bz2 && \
-tar xf eigen-"${EIGEN3_VERSION}".tar.bz2
-rm -rf eigen-"${EIGEN3_VERSION}".tar.bz2
-cd eigen-"${EIGEN3_VERSION}"
-mkdir -p build
-cd build
-cmake \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" \
-    ..
-make
-run_sudo make install
-
-echo "Installing G2O..."
-
-cd /tmp
-git clone https://github.com/RainerKuemmerle/g2o.git 
-cd g2o
-git checkout "${G2O_COMMIT}"
-mkdir -p build
-cd build
-cmake \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" \
-    -DBUILD_SHARED_LIBS=ON \
-    -DBUILD_UNITTESTS=OFF \
-    -DBUILD_WITH_MARCH_NATIVE=OFF \
-    -DG2O_USE_CHOLMOD=OFF \
-    -DG2O_USE_CSPARSE=ON \
-    -DG2O_USE_OPENGL=OFF \
-    -DG2O_USE_OPENMP=ON \
-    -DG2O_BUILD_APPS=OFF \
-    -DG2O_BUILD_EXAMPLES=OFF \
-    -DG2O_BUILD_LINKED_APPS=OFF \
-    ..
-make 
-run_sudo make install
-
-echo "Installing OpenCV"
-
-cd /tmp
-wget -q https://github.com/opencv/opencv/archive/"${OPENCV_VERSION}".zip
-unzip -q "${OPENCV_VERSION}".zip
-rm -rf "${OPENCV_VERSION}".zip
-cd opencv-"${OPENCV_VERSION}"
-mkdir -p build
-cd build
-cmake \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" \
-    -DBUILD_DOCS=OFF \
-    -DBUILD_EXAMPLES=OFF \
-    -DBUILD_JASPER=OFF \
-    -DBUILD_OPENEXR=OFF \
-    -DBUILD_PERF_TESTS=OFF \
-    -DBUILD_TESTS=OFF \
-    -DBUILD_opencv_apps=OFF \
-    -DBUILD_opencv_dnn=OFF \
-    -DBUILD_opencv_ml=OFF \
-    -DBUILD_opencv_python_bindings_generator=OFF \
-    -DENABLE_CXX11=ON \
-    -DENABLE_FAST_MATH=ON \
-    -DWITH_EIGEN=ON \
-    -DWITH_FFMPEG=ON \
-    -DWITH_OPENMP=ON \
-    ..
-make
-run_sudo make install
-
-echo "Installing DBoW2..."
-
-cd /tmp
-git clone https://github.com/shinsumicco/DBoW2.git
-cd DBoW2
-git checkout "${DBOW2_COMMIT}"
-mkdir -p build
-cd build
-cmake \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" \
-    .. 
-make
-run_sudo make install
-
-echo "Installing socket.io-client-cpp..."
-
-cd /tmp
-
-git clone https://github.com/shinsumicco/socket.io-client-cpp.git
-cd socket.io-client-cpp
-git checkout "${SIOCLIENT_COMMIT}"
-git submodule init
-git submodule update
-mkdir -p build
-cd build
-cmake \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" \
-    -DBUILD_UNIT_TESTS=OFF \
-    ..
-make
-run_sudo make install
-
-echo "Installing Protobuf..."
-
-cd /tmp
-
-wget -q https://github.com/google/protobuf/archive/v3.6.1.tar.gz
-tar xf v3.6.1.tar.gz
-cd protobuf-3.6.1
-./autogen.sh
-./configure \
-    --prefix=/usr/local \
-    --enable-static=no
-make
-run_sudo make install
-
-if [ "${DOCKER_CONTAINER}" = true ]; then
-    echo "Removing temporary files and cache (Docker only)..."
-    cd /tmp
-    rm -rf *
-    apt-get purge -y -qq autogen autoconf libtool
-    apt-get autoremove -y -qq
-    rm -rf /var/lib/apt/lists/*
-fi
-
-## OPENVSLAM DEPENDENCIES END ###
