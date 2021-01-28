@@ -76,4 +76,7 @@ setup(
     ext_modules=[CMakeExtension('cmake_example')],   # Must be the same name of the target of 'pybind11_add_module' in CMake
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
+    install_requires=[
+        'numpy',
+    ],
 )

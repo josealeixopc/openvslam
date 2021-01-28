@@ -28,8 +28,16 @@ Inside the docker container, change to the `io` folder and try to generate a whe
 
 If it succeeds, you have a wheel that can be installed without fixing. If not, then you need to install the missing libraries.
 
-### Installing missing libraries for OpenVSLAM
+### Running
 
-```bash
+```python
+python run_tum_rgbd_slam.py /home/jazz/Downloads/dataset/tum_rgbd_config.yaml /home/jazz/Downloads/dataset/orb_vocab.dbow2 /home/jazz/Projects/FEUP/ProDEI/simusafe/python-modules/output/tum_dataset 1 False True True /home/jazz/Projects/FEUP/ProDEI/simusafe/python-modules/output/test/map.msg
+```
 
-``` 
+### Possible errors and resolutions
+
+`ImportError: arg(): could not convert default argument into a Python object (type not registered yet?). Compile in debug mode for more information.`
+
+To compile in `debug` mode:
+
+`python setup.py build --debug`
