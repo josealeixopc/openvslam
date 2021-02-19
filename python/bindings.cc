@@ -9,6 +9,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
+#include <pybind11/eigen.h>
 
 // These need to be included to map cv::Mat to a Python type
 
@@ -51,6 +52,9 @@ public:
         if (info.format == format_descriptor<unsigned char>::format()) {
             dtype = CV_8UC(nc);
         }
+        else if (info.format == format_descriptor<unsigned short>::format()) {
+            dtype = CV_16UC(nc);
+        }  
         else if (info.format == format_descriptor<int>::format()) {
             dtype = CV_32SC(nc);
         }
@@ -58,7 +62,7 @@ public:
             dtype = CV_32FC(nc);
         }
         else {
-            throw std::logic_error("Unsupported type, only support uchar, int32, float");
+            throw std::logic_error("Unsupported type, only support uchar, uint16, int32, float");
             return false;
         }
 
@@ -82,6 +86,10 @@ public:
         if (depth == CV_8U) {
             format = format_descriptor<unsigned char>::format();
             elemsize = sizeof(unsigned char);
+        } 
+        else if (depth == CV_16U) {
+            format = format_descriptor<unsigned short>::format();
+            elemsize = sizeof(unsigned short);
         }
         else if (depth == CV_32S) {
             format = format_descriptor<int>::format();
@@ -168,8 +176,6 @@ PYBIND11_MODULE(openvslam_python, m) {
         .def("get_keyframes", &openvslam::publish::map_publisher::get_keyframes_pybind, py::return_value_policy::reference_internal);
     // .def("get_landmarks", &openvslam::publish::map_publisher::get_landmarks, py::arg("all_landmarks"), py::arg("local_landmarks"));
 
-    m.def("add", &add, "A function which adds two numbers");
-
     m.def("non_stop_rgbd_tracking", &non_stop_rgbd_tracking, "Function for tracking.",
           py::arg("config_file_path"),
           py::arg("vocab_file_path"),
@@ -179,4 +185,8 @@ PYBIND11_MODULE(openvslam_python, m) {
           py::arg("auto_term"),
           py::arg("eval_log"),
           py::arg("map_db_path"));
+
+    // For testing purposes
+    m.def("add", &add, "A function which adds two numbers");
+
 }
