@@ -6,6 +6,8 @@
 #include "openvslam/publish/frame_publisher.h"
 #include "openvslam/publish/map_publisher.h"
 
+#include "socket_publisher/publisher.h"
+
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
@@ -175,6 +177,20 @@ PYBIND11_MODULE(openvslam_python, m) {
         .def("get_current_cam_pose", &openvslam::publish::map_publisher::get_current_cam_pose)
         .def("get_keyframes", &openvslam::publish::map_publisher::get_keyframes_pybind, py::return_value_policy::reference_internal);
     // .def("get_landmarks", &openvslam::publish::map_publisher::get_landmarks, py::arg("all_landmarks"), py::arg("local_landmarks"));
+
+    py::class_<socket_publisher::publisher>(m, "socket_publisher")
+        .def(py::init<const std::shared_ptr<openvslam::config>&, 
+        openvslam::system*, 
+        const std::shared_ptr<openvslam::publish::frame_publisher>&, 
+        const std::shared_ptr<openvslam::publish::map_publisher>&>(), 
+        py::arg("cfg"), py::arg("system"), py::arg("frame_publisher"), py::arg("map_publisher"))
+        .def("is_paused", &socket_publisher::publisher::is_paused)
+        .def("is_terminated", &socket_publisher::publisher::is_terminated)
+        .def("request_pause", &socket_publisher::publisher::request_pause)
+        .def("request_terminate", &socket_publisher::publisher::request_terminate)
+        .def("resume", &socket_publisher::publisher::resume)
+        .def("run", &socket_publisher::publisher::run);
+
 
     m.def("non_stop_rgbd_tracking", &non_stop_rgbd_tracking, "Function for tracking.",
           py::arg("config_file_path"),
